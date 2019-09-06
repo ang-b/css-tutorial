@@ -15,3 +15,5 @@ main*.pdf
 *.toc
 .DS_*
 .vscode
+*.md5
+*.auxlock

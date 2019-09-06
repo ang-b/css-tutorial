@@ -1,0 +1,31 @@
+\begin{tikzpicture}{node distance=.5cm,semithick}
+
+\node[draw] (plant) at (0,0) {$\mathcal{P}$};
+\node[
+   draw,
+   dashed,
+   minimum width = 4cm,
+   minimum height = 1cm,
+   below = .5cm of plant 
+] (network) {Network};
+\node[draw, below = .5cm of network] (controller) {$\mathcal{C}$}; 
+\node[draw, below of = controller] (detector) {$\mathcal{D}$};
+
+\node[draw, circle, inner sep = 1pt] (outnode) at ($(plant.east)+(1,0)$) {$+$};
+\coordinate (innode) at ($(plant.west)+(-1,0)$);
+
+% Connecting Arrows
+\begin{scope}[every node/.style={scale=.9}]
+\draw [thick,->] (plant) edge node [above] {$y$} (outnode) 
+                 (outnode) edge (network.north -| outnode);
+\draw [thick,->] (network.south -| outnode) |- node [right] {$\color{red}{\tilde y}$} (controller.east);
+\draw [thick,->] (network.south -| outnode) |- (detector.east);
+\draw [thick,->] (2.2,0) -- node [above] {$v$} (outnode.east);
+\draw [thick,->] (controller.west -| innode) |- (detector.west);
+\draw [thick,->] (controller.west) -| node [left] {$u$} (network.south -| innode);
+\draw [thick,->] (network.north -| innode) |- (innode) -- node [above] {$\color{red}{\tilde u}$} (plant.west);
+\draw [thick,->] ($(network.west) + (-0.8,0)$) -- node [above, xshift=-4pt] {$[\eta, \gamma]$} (network.west);
+\draw [thick,->] (0,0.8) -- node [above, yshift=8pt] {$w$} (plant.north);
+\end{scope}
+
+\end{tikzpicture}

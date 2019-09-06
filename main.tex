@@ -3,6 +3,8 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[UKenglish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{booktabs}
 \usepackage{caption}
 \usepackage{subcaption}
@@ -12,6 +14,11 @@
 \usepackage{amssymb}
 \usepackage{epstopdf}
 \usepackage{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning,calc}
+%\usetikzlibrary{external}
+%\tikzexternalize[prefix=fig/]
 
 % complying UK date format, i.e. 1 January 2001
 \usepackage{datetime}
@@ -70,7 +77,7 @@
 		\begin{column}{0.64\textwidth}
 			\begin{figure}
 				\includegraphics[scale=0.44]{fig/vuln-report-ics-cert.png}
-				\caption*{\footnotesize Vulnerabilities in 2018 by sector [\href{https://ics-cert.us-cert.gov/}{\color{blue}{\underline{US ICS-CERT}}}]}
+				\caption*{\scriptsize Vulnerabilities in 2018 by sector [\href{https://ics-cert.us-cert.gov/}{\color{blue}{\underline{US ICS-CERT}}}]}
 			\end{figure}
 		\end{column}
 	\end{columns}
@@ -96,7 +103,7 @@
 	The topic of security encompasses many fields, from dedicated software security (PLCs, SCADA systems), to application specific cases (power networks, mobile networks, multiagent systems, etc.).
 
 	\vfill
-	We follow a generic system approach.
+	We follow a generic system (model-based) approach.
 \end{frame}
 
 \AtBeginSection[]
@@ -106,9 +113,125 @@
   \end{frame}
 }
 
-\section{Adversarial model}
+\section{Modelling}
+
+\begin{frame}
+	\frametitle{System model}
+	We consider dynamical systems in the form 
+
+	\begin{align*}
+		%\label{eq:dynsys}
+		\mathcal P: \left\lbrace
+		\begin{aligned}
+			&\dot x = f(t,x,\textcolor{red}{\tilde u},w) \\
+			&y = h(t,x,\textcolor{red}{\tilde u},v),
+		\end{aligned}\right.
+	\end{align*}
+
+	but typically linearity is assumed 
+
+	\begin{align*}
+	%\label{eq:ltiplant}
+	\mathcal P : \left\lbrace
+	\begin{aligned}
+		&\dot x = Ax + B\textcolor{red}{\tilde u} + Ww\\
+		&y = Cx + D\textcolor{red}{\tilde u} + Vv
+	\end{aligned}\right.
+	\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Adversarial model}
+	An attack can be described as a triplet $\{\mathcal K, \mathcal R, g\}$ of
+	\smallskip
+	\begin{itemize}
+		\item<1-> Knowledge $\mathcal K$ on the system, i.e. system matrices, type of detector used, etc.
+		\item<2-> Resources $\mathcal R$, i.e. the measurement and actuation signals that can be accessed and/or altered
+		\item<3> Attack strategy $g$ that describes the (unknown) attack strategy as some function of the available information.
+	\end{itemize}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Adversarial model (cont'd)}
+	\begin{columns}
+		\begin{column}{0.49\textwidth}
+			\resizebox{\textwidth}{!}{\input{fig/detectionfig.tikz}}
+		\end{column}
+		\begin{column}{0.5\textwidth}
+			An attacker may record
+			\begin{align*}
+				\left\lbrace
+				\begin{aligned}
+					&\nu = \textcolor{red}{\Upsilon_u} u \\
+					&\xi = \textcolor{red}{\Upsilon_y} y
+				\end{aligned}\right.
+			\end{align*}
+			\pause 
+			... or inject signals $\eta$ and $\gamma$:
+			\begin{align*}
+				\left\lbrace
+				\begin{aligned}
+					&\tilde u = u + \color{red}{\eta} \\
+					&\tilde y = y + \color{red}{\gamma}
+				\end{aligned}\right.
+			\end{align*}
+		\end{column}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Detector model}
+	We consider a residual generator as
+	\begin{align*}
+		\mathcal D: \left\lbrace
+		\begin{aligned}
+			&\dot s = A_d s + B_d u + K_d \color{red}\tilde y \\
+			&r = C_d s + D_d u + E_d \textcolor{red}{\tilde y} 
+		\end{aligned}\right. 
+	\end{align*}
+	with a threshold $\theta : r < \theta$ when there is no attack, and vice versa under attack.\\[1ex]
+	If the distribution of $r$ is known, statistical tests can be used.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Section remarks}
+	\begin{itemize}
+		\setlength{\itemsep}{2ex}
+		\item<1-> This framework is similar to the FDI case, however attacks are different in that:
+		\begin{itemize}
+			\item Strategy $g$ is not bound by the fault's physics
+			\item $g$ can be designed with the \emph{purpose} of impacting the system \emph{and} satisfy $\theta$
+			\item Multiple attackers can cooperate
+		\end{itemize}
+
+		\item<2-> This choice of dynamical system is not unique, and restrictive in fact. 
+		Discrete-event and hybrid systems are also valid, yet more complicated.
+		Same goes for distributed systems.
+	
+		\item<3> The detector is model-based. What about data-driven methods? And temporal logics? 
+	\end{itemize}
+\end{frame}
 
 \section{Taxonomy}
+
+\begin{frame}
+	\frametitle{A CIA-based classification}
+
+	We can divide attacks in
+	\smallskip
+	\begin{itemize}
+		\setlength{\itemsep}{2ex}
+		\item Disclosure attacks
+		\item Integrity attacks
+		\begin{itemize}
+			\item False-data injections
+			\item Zero-dynamic attacks
+			\item Replay attacks
+			\item Covert attacks
+		\end{itemize}
+		\item Denial of Service (DoS) attacks
+	\end{itemize}	
+\end{frame}
 
 \section{Distributed Systems}
 
