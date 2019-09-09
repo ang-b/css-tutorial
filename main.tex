@@ -26,7 +26,18 @@
 \newdateformat{dateUKenglish}{\THEDAY~\monthname[\THEMONTH] \THEYEAR}
 
 \usecolortheme{Imperial}
-% -----------------------------------------------------------------------------
+% 
+\newcommand{\NN}{{\mathcal{N}}}
+\newcommand{\mean}[1]{\mathbf{E}\left[#1\right]}
+\newcommand{\inv}[1]{{#1}^{-1}}
+\DeclareMathOperator{\rank}{\mathrm{rank}}
+\DeclareMathOperator{\cov}{\mathrm{Cov}}
+\DeclareMathOperator{\var}{\mathrm{Var}}
+\newcommand{\col}[1]{\underset{{#1}}{\mathrm{col}}}
+\newcommand{\row}[1]{\underset{{#1}}{\mathrm{row}}}
+\newcommand{\diag}[1]{\underset{{#1}}{\textrm{diag}}}
+
+%------------------------------------------------------------------------
 %Information to be included in the title page:
 \title{Addressing Security in Control Systems}
 \subtitle{Overview and Current Directions}
@@ -108,9 +119,9 @@
 
 \AtBeginSection[]
 {
-  \begin{frame}[noframenumbering,plain]{Outline}
-    \tableofcontents[currentsection,hideallsubsections]
-  \end{frame}
+	\begin{frame}[noframenumbering,plain]{Outline}
+		\tableofcontents[currentsection, hideallsubsections]
+	\end{frame}
 }
 
 \section{Modelling}
@@ -212,7 +223,15 @@
 	\end{itemize}
 \end{frame}
 
-\section{Taxonomy}
+\section*{The attack landscape}
+
+\AtBeginSubsection[]{
+	\begin{frame}[noframenumbering,plain]{Outline}
+		\tableofcontents[currentsection, currentsubsection]
+	\end{frame}
+}
+
+\subsection{Taxonomy}
 
 \begin{frame}
 	\frametitle{A CIA-based classification}
@@ -225,17 +244,283 @@
 		\item Integrity attacks
 		\begin{itemize}
 			\item False-data injections
-			\item Zero-dynamic attacks
 			\item Replay attacks
 			\item Covert attacks
 		\end{itemize}
-		\item Denial of Service (DoS) attacks
+		\item ``Availability'' (Denial of Service) attacks
 	\end{itemize}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Disclosure attacks}
+
+	\begin{block}{Objective}
+		\centering
+		Obtaining intelligence on a system
+	\end{block}
+
+	\vspace{4ex}
+	For control systems this entails:
+	\begin{itemize}
+		\item Reading I/O in order to \emph{identify} parameters
+		\item Intercepting data to infer sensitive information (e.g. the state by eavesdropping measurements)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Integrity attacks -- False-data injections}
+
+	\begin{block}{Objective}
+		\centering
+		Degrading a system's performance by injecting fake signals in actuators and/or sensors, \emph{while remaining undetected}.
+	\end{block}
+
+	\vfill
+	Attacks of this type include:
+	\begin{itemize}
+		\item Injecting a slow-varying bias in the inputs
+		\item Adding noise in the measurements or alter the signal (while keeping statistical properties)
+		\item Hiding non-zero attack signal in some subspace (i.e. null space of $C$, invariant zero subspace, ...)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Integrity attacks -- Replay and covert attacks}
+
+	Two-phase strategy:
+	\begin{enumerate}
+		\item Record a sequence $s_1 = \{y_k\}_{k \in I_1}$ in nominal operating conditions during interval $I_1$
+		\item Apply $\tilde u_k, k \in I_2$ to actuators, while feeding $s_1$ to the control system during interval $I_2$ 
+	\end{enumerate}
+	
+	\vfill
+	Covert attacks achieve the same effect but $\tilde u_k$ is compensated \emph{dynamically} by a replica of the system.
+
+	\vfill
+	\emph{These are equivalent to breaking the control loop}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Denial of Service attacks}
+
+	\begin{block}{Objective}
+		\centering
+		Degrading the system performance by (intermittently) interrupting or delaying information exchange (control loop, peer exchange, etc.)
+	\end{block}
+
+	\vfill
+	\begin{itemize}
+		\item Easy to carry out and hard to counter
+
+		\item DoS attacks may affect stability. 
+		The impact depends on DoS frequency and duty cycle, as well as system properties
+
+		\item Stealthiness is not an objective in general
+	\end{itemize}
+\end{frame}
+
+\subsection{Countermeasures}
+
+\begin{frame}
+	\frametitle{Defence}
+	\centering\footnotesize
+	\renewcommand{\arraystretch}{1.5}
+	\begin{tabular}{l|p{7cm}}
+		Class of attack & Defence \\
+		\hline
+		Disclosure & 
+		\renewcommand{\arraystretch}{1.2}
+		\begin{tabular}{p{6cm}}			
+			\tabitem Sensor placement to exploit geometric conditions \\  \tabitem Differential privacy
+		\end{tabular} \\
+		\hline 
+		Integrity & 
+		\renewcommand{\arraystretch}{1.2}
+		\begin{tabular}{l}
+			\tabitem Signal watermarking \\ 
+			\tabitem Moving target, system augmentation \\
+			\tabitem Hashing
+		\end{tabular} \\
+		\hline
+		DoS & Resilient design
+	\end{tabular}
+
+	\raggedright\vfill
+	Caveats:
+	\begin{itemize}
+		\item Some specific attacks remain to be dealt with
+		\item Defence measures introduce control trade-offs.
+	\end{itemize}
 \end{frame}
 
 \section{Distributed Systems}
 
+\begin{frame}
+	\frametitle{A slightly different take on modelling}
+
+	Centralized approaches are resource-heavy and monolithic models are not available.
+
+	\medskip
+	We partition a system in $N$ subsystems $\mathcal N_i$:
+	\vfill
+	\begin{columns}
+		\begin{column}{0.5\linewidth}
+			\begin{equation*}
+				\hspace*{2ex}
+				%\mathcal S_i \, : \left\{
+				\begin{aligned}
+					&x_i(k+1) = A_{i} x_i(k) + B_i \tilde u_i(k) \\
+						&\hspace{10ex} + \sum_{j \in \mathcal{N}_i} A_{ij} x_j(k)  + w_i(k)\\
+					&y_i(k) = C_i x_i(k) + v_i(k) 
+				\end{aligned}\label{eq:CPS-i}
+				%\right.
+			\end{equation*}
+		\end{column}
+		\begin{column}{0.49\linewidth}
+			\includegraphics[width=\textwidth]{fig/ndist-obs-generic-ecc.eps}
+		\end{column}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Locality}
+	\centering
+	Stealthiness definitions can adjusted to deal with local subsystems
+
+	\vfill
+	\includegraphics[]{fig/ecc19lss.eps}
+
+	\vfill
+	\emph{If control is decoupled} an attack needs to be stealthy only \emph{locally}.
+	However, \\[2ex]
+	local undetectability $\nRightarrow$ global undetectability
+\end{frame}
+
+\begin{frame}
+	\frametitle{Basic concept}
+	
+	\centering
+	\begin{block}{}
+		Physical interconnections can be leveraged for the purpose of detectability
+	\end{block}
+
+	\vfill
+	\includegraphics[scale=0.7]{fig/ecc-concept.eps}
+
+	\vfill\footnotesize
+	This is a generic concept, independent of how we model $\mathcal S_i$.
+\end{frame}
+
+\subsection{Local covert attacks detection}
+
+\begin{frame}
+	\frametitle{Local covert attacks}
+
+	\begin{itemize}
+		\setlength{\itemsep}{2ex}
+		\item<1-> LTI interconnected model with $w_i, v_i$ i.i.d. zero-mean Gaussian with variance $W_i$ and $V_i$.
+		
+		\item<2-> For a chosen $\eta_i(k)$, the compensation is computed using a replica of the original model $(A_i^a, B_i^a, C_i^a) = (A_i,B_i,C_i)$
+		
+		\begin{equation*}
+			\begin{aligned}
+				&x^{a}_i(k+1) = A^a_i x^a_i(k) + B^a_i \eta_i(k) \\
+				&\gamma_i(k) = C^a_i x^a_i(k) \,
+			\end{aligned}
+		\end{equation*}
+
+		\item<3> This attack is \emph{locally stealthy}, as attacked $\tilde y_k$ is undistinguishable from the nominal response.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Unbiased minimum-variance estimation}
+	Design a filter with gains $M_i(k)$ and $\bar L_i(k)$
+	\begin{align*}
+		&\hat{x}_i(k) =  (I - \bar L_i(k)C_i)\left[A_i\hat{x}_i(k-1) + B_i u_i(k-1)\right] +\bar L_i(k) \tilde y_i(k) \\
+		&\hat{\xi}_i(k-1|k) = M_i(k)\left[\tilde{y}_i(k) - C_i \left(A_i\hat{x}_i(k-1) + B_i u_i(k-1)	\right) \right]
+	\end{align*}
+	
+	\vfill
+	Only the independent components of the interconnections can be estimated
+	$$
+		\sum_{j\in\mathcal{N}_i}A_{ij} x_j = \row{j\in\NN_i}\left[A_{ij}\right]\col{j\in\NN_i}\left[x_i\right] = G_i \bar{E}_i \zeta_i = G_i \xi_i
+	$$
+	with $G_i$ full rank.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Residual design}
+	The residual
+	$$
+	\hat \rho_i(k-1|k) \doteq  \hat \xi_i(k-1|k) - \bar{E}_i \col{j\in\NN_i}[\hat x_j(k-1)]
+	$$
+	contains information about the discrepancy: \\[3ex]
+	\centering
+
+	\noindent{\color{blue}\fbox{
+		\normalcolor\parbox{15em}{
+			\centering 
+			Communicated $\hat x_j$ \\
+			(containing possible false data)
+		}
+	}} \\[2ex]
+	vs \\[2ex]
+	\noindent{\color{red}\fbox{
+		\normalcolor\parbox{15em}{
+			\centering 
+			Estimated $\hat\xi_i$ \\ 
+			(explaining the current estimate)
+		}
+	}}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Detection strategy}
+
+	For a deterministic attacker in $\mathcal S_j$, $$\mean{\hat \rho_i(k-1|k)} \propto x_j^a(k-1), $$ and since impact $\propto x_j^a$, we can detect an attack via GLR test on a sliding window of $\hat \rho_i$.
+
+	$$
+	\sum_{\kappa = k-\omega+1}^{k} 
+	\underbrace{\hat \rho_i(\kappa-1|\kappa)^\top U_i(\kappa)^\top}_{\hat z_i(k)^\top} 
+	\underbrace{\Lambda_i(\kappa)^{-1}}_{\text{diagonal}} 
+	\underbrace{U_i(\kappa)\hat \rho_i(\kappa-1|\kappa)}_{\hat z_i(k)} > \theta_i(k)
+	$$
+
+	For each component, test confidence against $\chi^2_\omega(0)$.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example -- Spring-connected pendula}
+
+	\begin{equation*}
+		m_il_i^2\Ddot{\delta}_i = m_igl_i\delta_i + u_i + \sum_{j\in\NN_i} k_{ij}a_i^2(\delta_j-\delta_i),
+	\end{equation*}
+
+	Insert interconnection graph and attack info
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example -- Simulation results}
+
+	The pictures
+\end{frame}
+
 \section{What's next?}
 
+\begin{frame}
+	\frametitle{Limitations}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Future work}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gaps}
+
+\end{frame}
  
 \end{document}
