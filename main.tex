@@ -15,6 +15,9 @@
 \usepackage{epstopdf}
 \usepackage{hyperref}
 
+\usepackage[backend=bibtex, sorting=ydnt, style=numeric-comp, defernumbers]{biblatex}
+\addbibresource{references.bib}
+
 \usepackage{tikz}
 \usetikzlibrary{positioning,calc}
 %\usetikzlibrary{external}
@@ -492,35 +495,78 @@
 
 \begin{frame}
 	\frametitle{Example -- Spring-connected pendula}
-
 	\begin{equation*}
-		m_il_i^2\Ddot{\delta}_i = m_igl_i\delta_i + u_i + \sum_{j\in\NN_i} k_{ij}a_i^2(\delta_j-\delta_i),
+		m_il_i^2\Ddot{\delta}_i = m_igl_i\delta_i + u_i + \sum_{j\in\NN_i} k_{ij}a_i^2(\delta_j-\delta_i)
 	\end{equation*}
+	\centering
+	Discretize each subsystem using Euler's approximation.
+	
+	\vfill
+	\begin{columns}
+		\begin{column}{0.75\linewidth}
+			Attack $\mathcal S_3 $ at $k_a = 35$ s
+			$$\eta_3(k) \doteq 0.5 \left(1-e^{-0.3 (k\cdot T_s-k_a)}\right)\,\mathrm{sin}\left(\frac{2}{30} \pi k \cdot T_s\right)$$
 
-	Insert interconnection graph and attack info
+			Compensation $\gamma_3$ obtained with exact subsystem model.
+		\end{column}
+		\begin{column}{0.23\linewidth}
+			%\raggedleft
+			\includegraphics[scale=0.6]{fig/layout.eps}
+		\end{column}
+	\end{columns}
 \end{frame}
 
 \begin{frame}
 	\frametitle{Example -- Simulation results}
-
-	The pictures
+	\vspace{2ex}
+	\centering
+	\begin{tabular}{lr}
+		\includegraphics[width=0.4\linewidth]{fig/det1_okThr.eps} & \includegraphics[width=0.4\linewidth]{fig/det2_okThr.eps} \\
+		\includegraphics[width=0.4\linewidth]{fig/det3_okThr.eps} & \includegraphics[width=0.4\linewidth]{fig/det4_okThr.eps}
+	\end{tabular}	
 \end{frame}
 
 \section{What's next?}
 
-\begin{frame}
-	\frametitle{Limitations}
+% \begin{frame}
+% 	\frametitle{Limitations}
 
-\end{frame}
+% \end{frame}
 
 \begin{frame}
 	\frametitle{Future work}
-
+	\begin{itemize}
+		\setlength{\itemsep}{1.5ex}
+		\item<1-> Structural/geometric/topological characterization of attack detectability in interconnected systems
+		
+		\item<2-> Relaxing attacker knowledge for covert attacks, i.e. the plant's model is known with some bounded uncertainty
+		
+		\item<3> The residual represents the error of the input estimate of a neighbour.
+		
+		Can we correct $\hat x_i + \delta$ such that $u_j(x_i + \delta)$ compensates the attack?
+	\end{itemize}
 \end{frame}
 
 \begin{frame}
-	\frametitle{Gaps}
-
+	\frametitle{Gaps}	
+	\begin{itemize}
+		\setlength{\itemsep}{1.5ex}
+		\item<1-> More attention to the \emph{confidentiality} part of the problem, with signal or system based techniques to enforce authenticity and keep secrecy
+		
+		\item<2-> Game theoretic approaches in a distributed setting have just started to be taken into consideration
+	
+		\item<3-> Attack-tolerant control: detect, isolate, compensate, (reconfigure) to guarantee certain operating performance (cf. FTC)
+		
+		\item<4-> More general class of systems (switching, event-driven, etc.) but also attacks tailored on specific sensitive systems
+		
+		\item<5> Non-model-based approaches. 
+	\end{itemize}
 \end{frame}
  
+\begin{frame}
+	\frametitle{Some notable references}
+	\nocite{*}
+	\printbibliography
+\end{frame}
+
 \end{document}
