@@ -455,7 +455,7 @@
 	\vfill
 	Only the independent components of the interconnections can be estimated
 	$$
-		\sum_{j\in\mathcal{N}_i}A_{ij} x_j = \row{j\in\NN_i}\left[A_{ij}\right]\col{j\in\NN_i}\left[x_i\right] = G_i \bar{E}_i \zeta_i = G_i \xi_i
+		\sum_{j\in\mathcal{N}_i}A_{ij} x_j = \row{j\in\NN_i}\left[A_{ij}\right]\col{j\in\NN_i}\left[x_j\right] = G_i \bar{E}_i \zeta_i = G_i \xi_i
 	$$
 	with $G_i$ full rank.
 \end{frame}
@@ -551,7 +551,7 @@
 		
 		\item<3> The residual represents the error of the input estimate of a neighbour.
 		
-		Can we correct $\hat x_i + \delta$ such that $u_j(x_i + \delta)$ compensates the attack?
+		Can we correct $\hat x_i + \delta$ such that $u_j(\hat x_i + \delta)$ compensates the attack?
 	\end{itemize}
 \end{frame}
 
